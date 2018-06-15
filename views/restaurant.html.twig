@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+{% block title %}{% if restaurant is defined %}{{ restaurant }}{% else %}review{% endif %}{% endblock %}
+{% block header %}
+    <!-- Beginning header -->
+    <header>
+        <!-- Beginning nav -->
+        <nav role="navigation">
+            <h1><a href="/">Restaurant Reviews</a></h1>
+        </nav>
+        <!-- Beginning breadcrumb -->
+        <nav aria-label="Breadcrumb">
+            <ul id="breadcrumb" role="directory">
+                <li><a href="/">Home</a></li>
+            </ul>
+            <button id="toggle-map">Toggle map</button>
+        </nav>
+        <!-- End breadcrumb -->
+        <!-- End nav -->
+    </header>
+    <!-- End header -->
+{% endblock %}
+{% block main %}
+<main id="maincontent" class="inside" role="main" style="visibility:hidden">
+    {% endblock %}
+{% block body %}
+    <!-- Beginning map -->
+    <section id="map-container">
+        <div id="map" role="application"></div>
+    </section>
+    <!-- End map -->
+    <!-- Beginning restaurant -->
+    <section id="restaurant-container">
+        <h2 id="restaurant-name">{{ restaurant }}</h2>
+        <img id="restaurant-img" alt="Restaurant image" src="">
+        <p id="restaurant-cuisine"></p>
+        <p id="restaurant-address"></p>
+        <table id="restaurant-hours"></table>
+    </section>
+    <!-- end restaurant -->
+    <!-- Beginning reviews -->
+    <section id="reviews-container">
+        <ul id="reviews-list"></ul>
+    </section>
+    <!-- End reviews -->
+{% endblock %}
