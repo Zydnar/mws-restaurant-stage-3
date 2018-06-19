@@ -44,7 +44,7 @@ const track_installing = (worker) => {
  */
 const initSW = () => {
   if (navigator.serviceWorker) {
-    navigator.serviceWorker.register('/sw.js').then((reg) => {
+    navigator.serviceWorker.register(`./${routeChecker()[0]==='review'?'../../':''}sw.js`).then((reg) => {
       if (!navigator.serviceWorker.controller) {
         return;
       } else if (reg.installing) {

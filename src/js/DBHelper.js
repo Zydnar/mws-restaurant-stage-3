@@ -64,7 +64,18 @@ class DBHelper {
     static getIndexedRestaurants(DB) {
         return Observable.fromPromise(
             DB[DBHelper.DATABASE_NAME].toArray()
-        );
+        ).mergeMap(val => val);
+    }
+
+    /**
+     * Returns Observable of restaurants table
+     * @param {Dexie} DB - Dexie DB instance
+     * @return {Observable} IndexedDB collection
+     */
+    static getIndexedReviews(DB) {
+        return Observable.fromPromise(
+            DB.reviews.toArray()
+        ).mergeMap(val => val);
     }
 
     /**
@@ -75,8 +86,15 @@ class DBHelper {
      * @return {Dexie.Version<Number>} database
      */
     static createIndexedStores(DB, stores) {
-
-        return DB.version(DBHelper.DATABASE_VERSION).stores(stores);
+        try {
+            return DB.version(DBHelper.DATABASE_VERSION).stores(stores);
+        } catch (error) {
+            if (error.message === 'Cannot add version when database is open') {
+                DB.close();
+                DB.version(DBHelper.DATABASE_VERSION).stores(stores);
+                return DB.open();
+            }
+        }
     }
 
     /**
@@ -155,9 +173,8 @@ class DBHelper {
             .getJSON(DBHelper.API_URL)
             .retry(2)
             .mergeMap(x => Observable.from(x))
-            .catch(error=>{
+            .catch(() => {
                 return DBHelper.getIndexedRestaurants(DB)
-                    .mergeMap(val=>val);
             })
     }
 
@@ -178,9 +195,8 @@ class DBHelper {
      * @param {''|string} prefix - route depth eg. ../
      * @return {Observable<AjaxResponse>}
      */
-    static fetchReviewsByID(ID, prefix=''){
-        return AjaxObservable.create.getJSON(`./${prefix}reviews/?restaurant_id=${ID}`)
-            .mergeMap(x => Observable.from(x));
+    static fetchReviewsByID(ID, prefix = '') {
+        return AjaxObservable.create.getJSON(`./${prefix}reviews/?restaurant_id=${ID}`);
     }
 
     /**
@@ -190,7 +206,7 @@ class DBHelper {
      * @param {''|string} prefix - route depth eg. ../
      * @return {Observable<AjaxResponse>}
      */
-    static addReviewByRestaurant(data, prefix=''){
+    static addReviewByRestaurant(data, prefix = '') {
         return AjaxObservable.create
             .post(`./${prefix}reviews/`, data)
     }
@@ -202,7 +218,7 @@ class DBHelper {
      * @param {String} prefix
      * @return {Observable<AjaxResponse>}
      */
-    static removeReviewByID(reviewID, prefix=''){
+    static removeReviewByID(reviewID, prefix = '') {
         return AjaxObservable.create
             .delete(`./${prefix}reviews/${reviewID}`)
     }
@@ -249,26 +265,16 @@ class DBHelper {
      * Fetch a restaurant by its ID.
      * @param {Number} id
      * @param {Dexie} DB
-     * @param {Function} callback
      * @static
-     * @return {Subscription}
+     * @return {Observable}
      */
-    static fetchRestaurantById(id, DB, callback) {
+    static fetchRestaurantById(id, DB) {
         return AjaxObservable.create
-
             .getJSON(`${DBHelper.API_URL}${id}`)
-
-            .catch(error=>{
-                return DBHelper.getIndexedRestaurants(DB)
-                    .filter(x=>x===id)
-                    .mergeMap(val=>val);
-            })
-
-            .subscribe((restaurants) => {
-                callback(null, restaurants)
-            }, (error) => {
-                callback(`Got error ${error} fetching restaurant ID: {${id}} from remote`, null);
-            });
+            .catch(() => DBHelper
+                .getIndexedRestaurants(DB)
+                .filter(x => x.id === Number(id))
+            )
     }
 
     /**

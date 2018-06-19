@@ -24,11 +24,12 @@ class Review {
         });
     }
     /**
-     * @type {{restaurant: null|Object, map: null|google.maps.Map}}
+     * @type {{restaurant: null|Object, map: null|google.maps.Map, DB: null|Dexie}}
      */
     state = {
         restaurant: null,
         map: null,
+        DB: null,
     };
 
     /**
@@ -72,18 +73,22 @@ class Review {
             callback(error, null);
         } else {
             const DB = DBHelper.createIndexedDB(DBHelper.DATABASE_NAME);
-            DBHelper.createIndexedStores(DB, {restaurants: 'id++,name,neighborhood,cuisine_type'});
-            DBHelper.fetchRestaurantById(id, DB, (error, restaurant) => {
-                this.state.restaurant = restaurant;
-                DB[DBHelper.DATABASE_NAME].put(restaurant)
-                    .catch(console.error);
-                if (!restaurant) {
-                    console.error(error);
-                    return;
-                }
-                this.fillRestaurantHTML();
-                callback(null, restaurant)
+            this.setState({DB});
+            DBHelper.createIndexedStores(DB, {
+                restaurants: 'id++,name,neighborhood,cuisine_type',
+                reviews: 'id++,name,restaurant_id,createdAt,updatedAt,rating,comments',
             });
+            DBHelper.fetchRestaurantById(id, DB)
+                .subscribe((restaurant) => {
+                    this.state.restaurant = restaurant;
+                    console.log(restaurant);
+                    DB[DBHelper.DATABASE_NAME].put(restaurant)
+                        .catch(console.error);
+                    callback(undefined, restaurant);
+                    this.fillRestaurantHTML(restaurant);
+                }, (error) => {
+                    console.error(`Got error ${error} fetching restaurant ID: {${id}} from remote`);
+                });
         }
     };
 
@@ -169,9 +174,14 @@ class Review {
             return;
         }
         const ul = document.getElementById('reviews-list');
+        const DB = this.state.DB;
         reviews
+            .catch(()=>DBHelper.getIndexedReviews(DB))
+            .mergeMap(x => Observable.from(x))
             .subscribe(review => {
                     ul.appendChild(this.createReviewHTML(review));
+                    DB.reviews.put(review)
+                        .catch(console.error);
                 },
                 err => {
                     console.error(err);
@@ -183,6 +193,10 @@ class Review {
                         const {review_id} = getDataAttributes(element.attributes);
                         this.addRemoveReviewListener(element, review_id)
                     });
+                    const m = document.getElementById('maincontent');
+                    const o = document.getElementById('overlay');
+                    m.style.visibility = 'visible';
+                    o.style.display = 'none';
                 });
 
     };
