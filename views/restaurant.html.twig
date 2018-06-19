@@ -24,8 +24,8 @@
     {% endblock %}
 {% block body %}
     <!-- Beginning map -->
-    <section id="map-container">
-        <div id="map" role="application"></div>
+    <section id="map-container" style="display: none">
+        <div id="map" role="application" style="display: none"></div>
     </section>
     <!-- End map -->
     <!-- Beginning restaurant -->
@@ -42,4 +42,26 @@
         <ul id="reviews-list"></ul>
     </section>
     <!-- End reviews -->
+    <section id="add-review">
+        <form role="form" id="review-form">
+            <div>
+                <label for="name" id="name-label">Name:</label>
+                <input id="name" aria-labelledby="name-label" name="name">
+            </div>
+            <div>
+                <label for="rating" id="rating-label">Rating from 1-5:</label>
+                <div id="range-legend">
+                    <div style="background-color: red">1</div><div style="background-color: orangered">2</div><div style="background-color: yellow">3</div><div style="background-color: #bfff57">4</div><div style="background-color: green">5</div>
+                </div>
+                <input id="rating" aria-labelledby="rating-label" name="name" type="range" min="1" max="5" step="1">
+            </div>
+            <div>
+                <label for="review" id="review-label">Review:</label>
+                <textarea aria-labelledby="review-label" id="review"></textarea>
+            </div>
+            <div>
+                <input type="submit" placeholder="submit">
+            </div>
+        </form>
+    </section>
 {% endblock %}

@@ -75,6 +75,12 @@
     width: 100%;
     max-width: 700px;
     @include border-radius(15px 0 15px 0);
+    & .remove-review {
+      background-color: red;
+      border: 0;
+      color: white;
+      font-weight: bold;
+    }
     .review-rating {
       background: orange;
       display: table;
@@ -89,4 +95,31 @@
 
 #restaurant-hours td {
   color: get_map_item($black, 'Devil');
+}
+
+#add-review {
+  width: 100%;
+  & > #review-form {
+    width: 100%;
+    display: table;
+    & > div {
+      width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+      & > #range-legend {
+        @include display-flex();
+        & > div {
+          @include flex-grow(1);
+          width: 100%;
+          text-align: center;
+          &:first-child, &:last-child {
+            color: white;
+          }
+        }
+      }
+      & > input, & > textarea {
+        width: 100%;
+      }
+    }
+  }
 }

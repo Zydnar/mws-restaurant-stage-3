@@ -1,12 +1,12 @@
 import DBHelper from './DBHelper';
 import {Observable} from 'rxjs/Observable';
 import {Subject} from 'rxjs/Subject';
-import {AjaxObservable} from 'rxjs/observable/dom/AjaxObservable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/fromEvent';
+import {toast} from './toast';
 
 /**
  * @class Restaurant
@@ -40,52 +40,20 @@ class Restaurant {
     };
 
     /**
-     * Passes all window.scrollY when it's bottom of page, supports dynamically appended elements
-     * @type {Observable<number>}
+     * Stream when back online
+     *
+     * @type {Observable<Event>}
      */
-    SCROLL_BOTTOM$ = Observable
-        .fromEvent(window, 'scroll')
-        .map(() => window.scrollY)
-        .filter(yPos => yPos + window.innerHeight === Math.round(document.body.getBoundingClientRect().height));
+    ONLINE$ = Observable.fromEvent(window, 'online');
 
     /**
-     * Passes thumbnails from state if it's bottom of page and if there left some !visible
-     * @type {Observable<object>}
+     * Stream when offline
+     *
+     * @type {Observable<Event>}
      */
-    THUMBNAILS_FOR_LOAD$ = this.SCROLL_BOTTOM$
-    //stream only if thumbnails are populated and not empty
-        .filter(() => this.state.thumbnails.length > 0)
-        .mergeMap(pageY => {
-            const thumbnails = this.state.thumbnails;
-            const container = document.getElementById('restaurants-list');
-            const containerDimensions = container.getBoundingClientRect();
-            const thumbnailDimensions = thumbnails[0].HTML[0].getBoundingClientRect();
-            const containerWidth = Math.round(containerDimensions.width);
-            const containerHeight = Math.round(containerDimensions.height);
-            const thumbnailWidth = Math.round(thumbnailDimensions.width);
-            const thumbnailHeight = Math.round(thumbnailDimensions.height);
-            const nRowsToAppend = Math.floor(containerHeight / thumbnailHeight);
-            const nToAppend = Math.floor(containerWidth / thumbnailWidth) * (nRowsToAppend !== 0 ? nRowsToAppend : 1);
-
-            return Observable.from(thumbnails.filter(obj => !obj.visible).slice(0, nToAppend));
-        });
-
-    /**
-     * Adds thumbnails if THUMBNAILS_FOR_LOAD$ is streaming
-     * @type {Subscription}
-     */
-    THUMBNAILS_SUBSCRIPTION = this.THUMBNAILS_FOR_LOAD$
-        .subscribe(/** @param {{HTML: [HTMLDivElement, String], visible: boolean}} obj*/obj => {
-                obj.HTML[0].innerHTML = obj.HTML[1] + obj.HTML[0].innerHTML;
-                this.fillRestaurantsHTML(obj.HTML[0]);
-                //not pure, but easier
-                obj.visible = true;
-                this.setFavoriteListeners();
-            },
-            (err) => {
-                console.log(err)
-            }
-        );
+    OFFLINE$ = Observable.fromEvent(window, 'offline').subscribe(()=>{
+        toast('It looks, you\'re offline. All requests will be send after connection reestablishing.', 'info');
+    });
 
     /**
      * Sets state of Restaurant class
@@ -232,15 +200,6 @@ class Restaurant {
             );
 
     };
-    /**
-     * Sends ajax request to set restaurant as favorite
-     *
-     * @param {Number} restaurantID
-     * @param {boolean} isFavorite
-     * @return {Observable}
-     */
-    setFavorite = (restaurantID, isFavorite) => AjaxObservable.create
-        .put(`./restaurants/${restaurantID}/?is_favorite=${isFavorite}`);
 
     /**
      * Sets restaurant as favorite also visually
@@ -251,8 +210,8 @@ class Restaurant {
      * @return {Observable}
      */
     toggleFavorite = (restaurantID, isFavorite, element) => {
-        this.setFavorite(restaurantID, !isFavorite)
-        //todo catch and wait for connection
+        DBHelper.setFavorite(restaurantID, !isFavorite)
+            .retryWhen(()=>this.ONLINE$)
             .subscribe(() => {
                     /**
                      * @type {HTMLImageElement | Node | null}
@@ -263,8 +222,7 @@ class Restaurant {
                     isFavorite?element.setAttribute('aria-label', 'Unmark as favorite'):element.setAttribute('aria-label', 'Mark as favorite');
                     img.className = `star ${!isFavorite ? 'favorite' : ''}`;
                     img.src = !isFavorite ? './img/star.png' : './img/star_unchecked.png';
-                },
-                (err) => console.error(err)
+                }
             )
     };
 
@@ -427,3 +385,4 @@ class Restaurant {
 
 export default Restaurant;
 export const createResponsiveImg = Restaurant.createResponsiveImg;
+export const getDataAttributes = Restaurant.getDataAttributes;

@@ -5,7 +5,7 @@
   @include box-sizing(border-box);
 }
 
-button, [role="button"], [role="link"], a, select {
+button, [role="button"], [role="link"], a, select, input, textarea {
   &:focus {
     @include box-shadow(0 0 0 2px rgba(2, 117, 216, .5));
   }
@@ -68,6 +68,22 @@ article, aside, canvas, details, figcaption, figure, footer, header, hgroup, men
   padding: 25px;
   text-align: center;
   text-transform: uppercase;
+}
+
+.toast-message{
+  background-color: get_map_item($black, 'Graphite');
+  padding: 10px;
+  position: fixed;
+  width: 100%;
+  display: table;
+  z-index: 99;
+  bottom: 0;
+  &.error {
+    color: red;
+  }
+  &.info {
+    color: white;
+  }
 }
 
 @media screen and (max-width: 479px) {

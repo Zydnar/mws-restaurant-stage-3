@@ -6,8 +6,10 @@ import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/distinct';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/observable/from';
+import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/retry';
+import 'rxjs/add/operator/retryWhen';
 import Dexie from 'dexie';
 
 /**
@@ -157,6 +159,52 @@ class DBHelper {
                 return DBHelper.getIndexedRestaurants(DB)
                     .mergeMap(val=>val);
             })
+    }
+
+    /**
+     * Sends ajax request to set restaurant as favorite
+     *
+     * @param {Number} restaurantID
+     * @param {boolean} isFavorite
+     * @return {Observable}
+     */
+    static setFavorite = (restaurantID, isFavorite) => AjaxObservable.create
+        .put(`./restaurants/${restaurantID}/?is_favorite=${isFavorite}`);
+
+    /**
+     * Gets reviews
+     *
+     * @param {Number} ID - ID of restaurant
+     * @param {''|string} prefix - route depth eg. ../
+     * @return {Observable<AjaxResponse>}
+     */
+    static fetchReviewsByID(ID, prefix=''){
+        return AjaxObservable.create.getJSON(`./${prefix}reviews/?restaurant_id=${ID}`)
+            .mergeMap(x => Observable.from(x));
+    }
+
+    /**
+     * Sends new review to API
+     *
+     * @param {FormData} data
+     * @param {''|string} prefix - route depth eg. ../
+     * @return {Observable<AjaxResponse>}
+     */
+    static addReviewByRestaurant(data, prefix=''){
+        return AjaxObservable.create
+            .post(`./${prefix}reviews/`, data)
+    }
+
+    /**
+     * Deletes review by it's ID
+     *
+     * @param {Number|String} reviewID
+     * @param {String} prefix
+     * @return {Observable<AjaxResponse>}
+     */
+    static removeReviewByID(reviewID, prefix=''){
+        return AjaxObservable.create
+            .delete(`./${prefix}reviews/${reviewID}`)
     }
 
     /**
