@@ -263,7 +263,7 @@ class DBHelper {
 
     /**
      * Fetch a restaurant by its ID.
-     * @param {Number} id
+     * @param {String} id
      * @param {Dexie} DB
      * @static
      * @return {Observable}
@@ -358,7 +358,7 @@ class DBHelper {
      * @static
      * @return {String}
      */
-    static urlForRestaurant = (restaurant) => (`./review/${restaurant.id}`);
+    static urlForRestaurant = (restaurant) => (`./review?id=${restaurant.id}`);
 
     /**
      * Restaurant image URL.

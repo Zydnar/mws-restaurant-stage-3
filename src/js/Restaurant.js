@@ -29,6 +29,10 @@ class Restaurant {
         });
     }
 
+    /**
+     * @type {{restaurants: null|Subject, neighborhoods: Array, cuisines: Array, map: null|google.maps.Map, markers: Array, indexedDB: null|Dexie,
+     * thumbnails: Array}}
+     */
     state = {
         restaurants: null,
         neighborhoods: [],
@@ -54,7 +58,7 @@ class Restaurant {
      *
      * @type {Observable<Event>}
      */
-    OFFLINE$ = Observable.fromEvent(window, 'offline').subscribe(()=>{
+    OFFLINE$ = Observable.fromEvent(window, 'offline').subscribe(() => {
         toast('It looks, you\'re offline. All requests will be send after connection reestablishing.', 'info');
     });
 
@@ -213,20 +217,24 @@ class Restaurant {
      * @return {Observable}
      */
     toggleFavorite = (restaurantID, isFavorite, element) => {
+        /**
+         * @type {HTMLImageElement | Node | null}
+         */
+        const img = element.children[0];
+        element.setAttribute('data-favorite', !isFavorite);
+        element.setAttribute('aria-checked', !isFavorite);
+        isFavorite ? element.setAttribute('aria-label', 'Unmark as favorite') : element.setAttribute('aria-label', 'Mark as favorite');
+        img.className = `star ${!isFavorite ? 'favorite' : ''}`;
+        img.src = !isFavorite ? './img/star.png' : './img/star_unchecked.png';
+        this.state.indexedDB.restaurants
+            .where('id')
+            .equals(restaurantID)
+            .modify({is_favorite: !isFavorite});
+        // save in API
         DBHelper.setFavorite(restaurantID, !isFavorite)
-            .retryWhen(()=>this.ONLINE$)
-            .subscribe(() => {
-                    /**
-                     * @type {HTMLImageElement | Node | null}
-                     */
-                    const img = element.children[0];
-                    element.setAttribute('data-favorite', !isFavorite);
-                    element.setAttribute('aria-checked', !isFavorite);
-                    isFavorite?element.setAttribute('aria-label', 'Unmark as favorite'):element.setAttribute('aria-label', 'Mark as favorite');
-                    img.className = `star ${!isFavorite ? 'favorite' : ''}`;
-                    img.src = !isFavorite ? './img/star.png' : './img/star_unchecked.png';
-                }
-            )
+        //if can't retry when online
+            .retryWhen(() => this.ONLINE$)
+            .subscribe()
     };
 
     /**
@@ -350,7 +358,7 @@ class Restaurant {
         const isFavorite = JSON.parse(typeof restaurant.is_favorite !== "undefined" ? restaurant.is_favorite : "false");
         container.innerHTML = `<li role="listitem" aria-labelledby="${randomId}">
 <div id="${randomId}">
-<button class="markAsFavorite" aria-label="Mark as favorite" aria-live="assertive" role="switch" aria-checked="false" data-id="${restaurant.id}" data-favorite="${ isFavorite }">
+<button class="markAsFavorite" aria-label="Mark as favorite" title="Mark as favorite" aria-live="assertive" role="switch" aria-checked="false" data-id="${restaurant.id}" data-favorite="${ isFavorite }">
 <img class="star ${isFavorite ? 'favorite' : ''}" src="${isFavorite ? './img/star.png' : './img/star_unchecked.png'}"
  alt="${isFavorite ? 'is favorite' : "isn't favorite"}">
 </button>

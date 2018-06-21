@@ -21,6 +21,7 @@ addEventListener('install', function (event) {
         return cache.addAll(
           [
             '/',
+            '/review',
             '/img/star.png',
             '/img/star_unchecked.png',
             '/img/placeholder.jpg',

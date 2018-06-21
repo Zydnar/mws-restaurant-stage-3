@@ -34,7 +34,7 @@ module.exports.routes = {
 
   "GET /": 'RestaurantsController.home',
 
-    'GET /review/:restaurant': 'RestaurantsController.review'
+    'GET /review': 'RestaurantsController.review'
 
   /***************************************************************************
   *                                                                          *

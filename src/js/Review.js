@@ -12,13 +12,29 @@ class Review {
             const review = document.getElementById('review');
             const rating = document.getElementById('rating');
             const name = document.getElementById('name');
-            const restaurantID = routeChecker()[1];
+            const restaurantID = this.getParameterByName();
             const data = new FormData();
             data.append('name', name.value);
             data.append('rating', rating.value);
             data.append('comments', review.value);
             data.append('restaurant_id', restaurantID);
+            const rev = {
+                name: name.value,
+                rating: rating.value,
+                comments: review.value,
+                createdAt: (new Date()),
+                updatedAt: (new Date()),
+                restaurant_id: restaurantID,
+            };
+            //add to idb
+            this.state.DB.reviews.put(rev).catch(console.error);
+            //show added review immediately
+            const ul = document.getElementById('reviews-list');
+            ul.appendChild(this.createReviewHTML(rev));
+
+            //send to API
             DBHelper.addReviewByRestaurant(data, '../')
+                //retry when online
                 .retryWhen(()=>this.ONLINE$)
                 .subscribe();
         });
@@ -212,7 +228,7 @@ class Review {
 <p>${date}</p>
 <p class="review-rating">Rating: ${review.rating}</p>
 <p>${review.comments}</p>
-<button class="remove-review">X</button><button class="edit-review">edit</button></li>`
+<button class="remove-review" title="Remove review">X</button><button class="edit-review">edit</button></li>`
             .replace(/>\s+</, '><');
 
         return container.firstChild;
@@ -231,17 +247,17 @@ class Review {
 
     /**
      * Get a parameter by name from page URL.
+     * @param {String=} name
      * @param url {String=}
      */
-    getParameterByName = (url = window.location.pathname) => {
-        const results = url.split('/');
-        if (!results) {
-            return null;
-        }
-        if (!results[2]) {
-            return '';
-        }
-        return results[2];
+    getParameterByName = (name='id', url = window.location.href) => {
+        if (!url) url = window.location.href;
+        const parsedName = name.replace(/[\[\]]/g, "\\$&");
+        const regex = new RegExp("[?&]" + parsedName + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
     };
 
 }

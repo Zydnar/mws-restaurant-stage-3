@@ -1,6 +1,4 @@
 const Twig = require('twig');
-const fs = require('fs');
-const DB = JSON.parse(fs.readFileSync('./.tmp/localDiskDb.db', {encoding: 'utf-8'}));
 
 /**
  * RestaurantsController
@@ -24,7 +22,6 @@ module.exports = {
         Twig.renderFile(
             './views/restaurant.html.twig',
             {
-                restaurant: DB.data.restaurants[req.params.restaurant].name + ' restaurant',
                 assetsPrefix: './../../'
             }, function (err, html) {
                 if (err) throw err;
