@@ -37,12 +37,12 @@ nav[role="navigation"] {
 
     /* Add a color to all links inside the list */
     & a {
-      color: get_map_item($blue, Turkus);
+      color: get_map_item($blue, 'darkBlue');
       text-decoration: none;
 
       /* Add a color on mouse-over */
       &:hover {
-        color: get_map_item($blue, 'darkBlue');
+        color: get_map_item($blue, 'darkerBlue');
         text-decoration: underline;
       }
     }

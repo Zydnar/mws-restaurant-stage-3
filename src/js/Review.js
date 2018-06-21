@@ -81,7 +81,6 @@ class Review {
             DBHelper.fetchRestaurantById(id, DB)
                 .subscribe((restaurant) => {
                     this.state.restaurant = restaurant;
-                    console.log(restaurant);
                     DB[DBHelper.DATABASE_NAME].put(restaurant)
                         .catch(console.error);
                     callback(undefined, restaurant);
@@ -105,7 +104,7 @@ class Review {
         address.innerHTML = restaurant.address;
 
         const image = document.getElementById('restaurant-img');
-        image.outerHTML = createResponsiveImg(DBHelper.imageUrlForRestaurant(restaurant), `Image of ${restaurant.name} restaurant`, './../..');
+        image.outerHTML = createResponsiveImg(DBHelper.imageUrlForRestaurant(restaurant), `Image of ${restaurant.name} restaurant`, './..');
         const img = document.getElementsByClassName('restaurant-img')[1];
         img.id = 'restaurant-img';
 

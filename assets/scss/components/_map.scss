@@ -10,18 +10,16 @@
 
 .inside {
   & header {
-    position: fixed;
+    position: relative;
     top: 0;
     width: 100%;
     z-index: 1000;
   }
   & #map-container {
-    /* TODO fix not so responsive height */
-    height: 87%;
-    position: fixed;
+    position: relative;
     right: 0;
-    top: 80px;
-    width: 50%;
+    width: 100%;
+    height: 50vh;
   }
   & #map {
     background-color: get_map_item($white, 'lightGray');

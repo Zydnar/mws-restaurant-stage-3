@@ -5,7 +5,7 @@
 /* ====================== Restaurant Details ====================== */
 
 #restaurant-name {
-  color: get_map_item($orange, 'deepOrange');
+  color: maroon;
   font-family: Arial, sans-serif;
   font-size: $restaurant_name_f_size;
   font-weight: 200;
@@ -17,6 +17,7 @@
 
 #restaurant-img {
   width: 90%;
+  max-width: 1211px;
 }
 
 #restaurant-address {
@@ -39,14 +40,18 @@
 #restaurant-container {
   text-align: center;
   & p:nth-of-type(2) {
-    text-align: left;
+    text-align: center;
+  }
+  & > table {
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 #restaurant-container, #reviews-container {
   border-bottom: 1px solid get_map_item($white, 'Gray');
   border-top: 1px solid get_map_item($white, 'White');
   padding: 14px 10px 30px;
-  width: 50%;
+  width: 100%;
 }
 
 #reviews-container {
@@ -63,12 +68,14 @@
 #reviews-list {
   margin: 0;
   padding: 0;
+  @include display-flex();
+  @include flex-wrap(wrap);
   & li {
     background-color: get_map_item($white, 'White');
     border: 2px solid get_map_item($white, 'quiteWhite');
     display: block;
     list-style-type: none;
-    margin: 0 0 30px;
+    margin: 0 auto;
     overflow: hidden;
     padding: 0 20px 20px;
     position: relative;
@@ -76,7 +83,7 @@
     max-width: 700px;
     @include border-radius(15px 0 15px 0);
     & .remove-review {
-      background-color: red;
+      background-color: darkred;
       border: 0;
       color: white;
       font-weight: bold;

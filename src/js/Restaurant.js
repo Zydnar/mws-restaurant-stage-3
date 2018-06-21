@@ -16,6 +16,9 @@ class Restaurant {
         const loadImages = document.getElementById('load-restaurants');
         loadImages.addEventListener('click', (event) => {
             event.preventDefault();
+            const ul = document.getElementById('restaurants-list');
+            this.removeFavoriteListeners();
+            ul.innerHTML = '';
             this.state.thumbnails.map((obj) => {
                 obj.HTML[0].innerHTML = obj.HTML[1] + obj.HTML[0].innerHTML;
                 this.fillRestaurantsHTML(obj.HTML[0]);
@@ -264,7 +267,6 @@ class Restaurant {
         this.state.thumbnails.length = 0;
         const ul = document.getElementById('restaurants-list');
         this.removeFavoriteListeners();
-        ul.innerHTML = '';
         // Remove all map markers
         this.state.markers = this.state.markers ? this.state.markers : [];
         this.state.markers.forEach(/**@param {google.maps.Marker} m */m => m.setMap(null));
@@ -346,7 +348,7 @@ class Restaurant {
         const container = document.createElement('div');
         const randomId = 'n' + String(Math.random()).split('.')[1];
         const isFavorite = JSON.parse(typeof restaurant.is_favorite !== "undefined" ? restaurant.is_favorite : "false");
-        container.innerHTML = `<li role="banner" aria-labelledby="${randomId}">
+        container.innerHTML = `<li role="listitem" aria-labelledby="${randomId}">
 <div id="${randomId}">
 <button class="markAsFavorite" aria-label="Mark as favorite" aria-live="assertive" role="switch" aria-checked="false" data-id="${restaurant.id}" data-favorite="${ isFavorite }">
 <img class="star ${isFavorite ? 'favorite' : ''}" src="${isFavorite ? './img/star.png' : './img/star_unchecked.png'}"

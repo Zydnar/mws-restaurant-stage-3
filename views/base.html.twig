@@ -25,7 +25,7 @@
     </header>
 {% endblock %}
 
-<div id="overlay" style="position: fixed; width: 100vw; height: 100vh; background: #333; top: 0; z-index: 99; display: block !important;">
+<div id="overlay" role="presentation" style="position: fixed; width: 100vw; height: 100vh; background: #333; top: 0; z-index: 99; display: block !important;">
   <img src="{{assetsPrefix}}img/loading.gif" style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">
 </div>
 {% block main %}
