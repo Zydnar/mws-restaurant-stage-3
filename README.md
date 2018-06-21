@@ -20,7 +20,7 @@ or
 ```bash
 node app.js
 ```
-By default server will be available at:  [http://localhost:1337](http://localhost:1337)
+By default application will be available at:  [http://localhost:1337](http://localhost:1337)
 
 ### Notes to reviewer
 
