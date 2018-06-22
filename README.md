@@ -22,6 +22,8 @@ node app.js
 ```
 By default application will be available at:  [http://localhost:1337](http://localhost:1337)
 
+Open browser and simply launch it at given adress.
+
 ### Notes to reviewer
 
 Strategy I've choosen for syncing requests sent when offline (window.ononline event) requires to shut down both Sails.js server and internet connection. After eg. toggling restaurant as favorite, first launch Sails.js then establish connection with internet, otherwise request would be sent to not launched developement server.
