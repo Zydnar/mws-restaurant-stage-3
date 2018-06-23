@@ -366,7 +366,7 @@ class DBHelper {
      * @static
      * @return {String}
      */
-    static imageUrlForRestaurant = (restaurant) => (`./../img/${restaurant.photograph}`);
+    static imageUrlForRestaurant = (restaurant) => (`./../img/${typeof restaurant.photograph!=="undefined"?restaurant.photograph:'placeholder'}`);
 
     /**
      * Map marker for a restaurant.

@@ -20,7 +20,7 @@
     font-family: Arial, sans-serif;
     margin: $results_li_mg;
     min-height: $results_li_min_height;
-    max-height: 416px;
+    max-height: 440px;
     padding: 0;
     text-align: left;
     width: $results_li_width;
@@ -32,8 +32,9 @@
       & > p {
         padding: 0 10px;
       }
-      & > h1 {
+      & > h2 {
         padding: 0 10px;
+        min-height: 72px;
       }
     }
   }

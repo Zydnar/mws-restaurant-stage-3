@@ -44,7 +44,7 @@ addEventListener('activate', function (event) {
 
 addEventListener('fetch', function (event) {
   event.respondWith(
-    caches.match(event.request)
+    caches.match(event.request, {ignoreSearch: true})
       .then(function (response) {
         // comments from Mozilla MDN
         // caches.match() always resolves
