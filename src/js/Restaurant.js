@@ -92,8 +92,7 @@ class Restaurant {
      */
     setFavoriteListeners = () => {
         this.removeFavoriteListeners();
-        const buttons = [...document.getElementsByClassName('markAsFavorite')];
-        buttons
+        [...document.getElementsByClassName('markAsFavorite')]
             .map(/**@type {HTMLButtonElement} */button => button.addEventListener('click', (event) => {
                 event.preventDefault();
                 const {id, favorite} = Restaurant.getDataAttributes(button.attributes);
@@ -190,7 +189,10 @@ class Restaurant {
     setRestaurants = () => {
         this.state.restaurants = new Subject();
         const DB = DBHelper.createIndexedDB(DBHelper.DATABASE_NAME);
-        DBHelper.createIndexedStores(DB, {restaurants: 'id++,name,neighborhood,cuisine_type'});
+        DBHelper.createIndexedStores(DB, {
+            restaurants: 'id++,name,neighborhood,cuisine_type',
+            favoriteRequests: 'id++,restaurantID',
+        });
         this.resetRestaurants();
         this.setState({indexedDB: DB});
         return DBHelper.fetchRestaurants(DB)
@@ -226,14 +228,36 @@ class Restaurant {
         isFavorite ? element.setAttribute('aria-label', 'Unmark as favorite') : element.setAttribute('aria-label', 'Mark as favorite');
         img.className = `star ${!isFavorite ? 'favorite' : ''}`;
         img.src = !isFavorite ? './img/star.png' : './img/star_unchecked.png';
+
+        //save in idb
         this.state.indexedDB.restaurants
             .where('id')
             .equals(restaurantID)
             .modify({is_favorite: !isFavorite});
+
         // save in API
         DBHelper.setFavorite(restaurantID, !isFavorite)
-        //if can't retry when online
-            .retryWhen(() => this.ONLINE$)
+            .catch(
+                // bg sync if can't
+                () => {
+                    return new Promise((resolve, reject) => {
+                        if (navigator.serviceWorker) {
+
+                            if (reg.sync && reg.sync.getTags) {
+                                resolve(
+                                    this.state.indexedDB.favoriteRequests
+                                        .put({restaurantID: restaurantID})
+                                        .then(reg.sync.register('syncFavorite'))
+                                );
+                            }
+                        } else {
+                            reject();
+                        }
+                    })
+                }
+            )
+            //if can't retry when online
+            //.retryWhen(() => this.ONLINE$)
             .subscribe()
     };
 
@@ -310,7 +334,7 @@ class Restaurant {
 
     };
     /**
-     * Returns data
+     * Returns data- attributes
      *
      * @param {NamedNodeMap} attr - attributes of a node
      * @return {Object} object of data attributes

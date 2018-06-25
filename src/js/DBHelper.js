@@ -57,6 +57,27 @@ class DBHelper {
     }
 
     /**
+     * Returns Observable of favoriteRequests table
+     * @param {Dexie} DB - Dexie DB instance
+     * @return {Observable} IndexedDB collection
+     */
+    static getIndexedFavoriteRequests(DB) {
+        return Observable.fromPromise(
+            DB.favoriteRequests.toArray()
+        ).mergeMap(val => val);
+    }
+    /**
+     * Returns Observable of favoriteRequests table
+     * @param {Dexie} DB - Dexie DB instance
+     * @return {Observable} IndexedDB collection
+     */
+    static getIndexedReviewRequests(DB) {
+        return Observable.fromPromise(
+            DB.reviewRequests.toArray()
+        ).mergeMap(val => val);
+    }
+
+    /**
      * Returns Observable of restaurants table
      * @param {Dexie} DB - Dexie DB instance
      * @return {Observable} IndexedDB collection

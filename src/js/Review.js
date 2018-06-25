@@ -27,25 +27,39 @@ class Review {
                 restaurant_id: restaurantID,
             };
             //add to idb
-            this.state.DB.reviews.put(rev).catch(console.error);
+            this.state.indexedDB.reviews.put(rev).catch(console.error);
             //show added review immediately
             const ul = document.getElementById('reviews-list');
             ul.appendChild(this.createReviewHTML(rev));
 
             //send to API
             DBHelper.addReviewByRestaurant(data, '../')
+                .catch(
+                    // leave it to bg sync
+                    () => {
+                        if (navigator.serviceWorker) {
+                            const reg = window.reg;
+
+                            if (reg.sync && reg.sync.getTags) {
+                                this.state.indexedDB.reviewRequests
+                                    .put({reviewID: restaurantID})
+                                    .then(reg.sync.register('syncReview'));
+                            }
+                        }
+                    }
+                 )
                 //retry when online
-                .retryWhen(()=>this.ONLINE$)
+                //.retryWhen(()=>this.ONLINE$)
                 .subscribe();
         });
     }
     /**
-     * @type {{restaurant: null|Object, map: null|google.maps.Map, DB: null|Dexie}}
+     * @type {{restaurant: null|Object, map: null|google.maps.Map, indexedDB: null|Dexie}}
      */
     state = {
         restaurant: null,
         map: null,
-        DB: null,
+        indexedDB: null,
     };
 
     /**
@@ -89,10 +103,11 @@ class Review {
             callback(error, null);
         } else {
             const DB = DBHelper.createIndexedDB(DBHelper.DATABASE_NAME);
-            this.setState({DB});
+            this.setState({indexedDB});
             DBHelper.createIndexedStores(DB, {
                 restaurants: 'id++,name,neighborhood,cuisine_type',
                 reviews: 'id++,name,restaurant_id,createdAt,updatedAt,rating,comments',
+                reviewRequests: 'id++,reviewID',
             });
             DBHelper.fetchRestaurantById(id, DB)
                 .subscribe((restaurant) => {
@@ -189,7 +204,7 @@ class Review {
             return;
         }
         const ul = document.getElementById('reviews-list');
-        const DB = this.state.DB;
+        const DB = this.state.indexedDB;
         reviews
             .catch(()=>DBHelper.getIndexedReviews(DB))
             .mergeMap(x => Observable.from(x))

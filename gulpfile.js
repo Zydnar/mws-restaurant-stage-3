@@ -26,7 +26,7 @@ gulp.task('compass', function () {
         .pipe(csso({sourceMap: !isProduction}))
         .pipe(gulp.dest('./assets/css'));
 });
-gulp.task('build', function () {
+gulp.task('build-main', function () {
     return gulp.src('./src/js/index.js')
         .pipe(isProduction?sourcemaps.init():noop())
         .pipe(
@@ -41,14 +41,27 @@ gulp.task('build', function () {
         .pipe(isProduction?sourcemaps.write('./assets/js'):noop())
         .pipe(gulp.dest('./assets/js'));
 });
-gulp.task('js-watch', ['build'], browserSync.reload);
+gulp.task('build-sw', function () {
+    return gulp.src('./src/js/sw.js', {sourcemaps: true})
+        .pipe(
+            browserify(
+                {
+                    transform: ['babelify']
+                }
+            )
+        )
+        .pipe(uglify())
+        .pipe(gulp.dest('./assets/'));
+});
+gulp.task('build', gulp.parallel('build-sw', 'build-main'));
+gulp.task('js-watch', gulp.series('build', browserSync.reload));
 gulp.task('watch', function () {
     browserSync(
         {
             proxy: `localhost:${SERVER_PORT}`
         }
     );
-    watch('assets/src/**', ['js-watch']);
+    return watch('assets/src/**', ['js-watch']);
 });
 gulp.task('responsive-images', function () {
     return gulp.src('./assets/img/*.jpg')
