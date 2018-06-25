@@ -66,6 +66,7 @@ class DBHelper {
             DB.favoriteRequests.toArray()
         ).mergeMap(val => val);
     }
+
     /**
      * Returns Observable of favoriteRequests table
      * @param {Dexie} DB - Dexie DB instance
@@ -104,18 +105,21 @@ class DBHelper {
      * @param {Dexie} DB Database
      * @param {Object} stores Stores and object
      * @static
-     * @return {Dexie.Version<Number>} database
+     * @return {Promise<Dexie>}
      */
     static createIndexedStores(DB, stores) {
-        try {
-            return DB.version(DBHelper.DATABASE_VERSION).stores(stores);
-        } catch (error) {
-            if (error.message === 'Cannot add version when database is open') {
-                DB.close();
-                DB.version(DBHelper.DATABASE_VERSION).stores(stores);
-                return DB.open();
+        return new Promise((resolve, reject) => {
+            try {
+                return DB.version(DBHelper.DATABASE_VERSION).stores(stores);
+            } catch (error) {
+                if (error.message === 'Cannot add version when database is open') {
+                    DB.close();
+                    DB.version(DBHelper.DATABASE_VERSION).stores(stores);
+                    return DB.open();
+                }
             }
-        }
+            resolve(DB);
+        })
     }
 
     /**
@@ -387,7 +391,7 @@ class DBHelper {
      * @static
      * @return {String}
      */
-    static imageUrlForRestaurant = (restaurant) => (`./../img/${typeof restaurant.photograph!=="undefined"?restaurant.photograph:'placeholder'}`);
+    static imageUrlForRestaurant = (restaurant) => (`./../img/${typeof restaurant.photograph !== "undefined" ? restaurant.photograph : 'placeholder'}`);
 
     /**
      * Map marker for a restaurant.

@@ -23,7 +23,21 @@ DBHelper.createIndexedStores(DB, {
     reviews: 'id++,name,restaurant_id,createdAt,updatedAt,rating,comments',
     favoriteRequests: 'id++,restaurantID',
     reviewRequests: 'id++,reviewID',
-});
+}).then((db)=>{
+    //after reload check if there is still something to sync
+    db.favoriteRequests.count(count => {
+        if (count > 0) {
+            return syncFavorites();
+        }
+    });
+
+    db.reviewRequests.count(count => {
+        if (count > 0) {
+            return syncReviews();
+        }
+    });
+    }
+);
 
 /**
  * Deletes caches not matching cache_name
@@ -246,15 +260,3 @@ addEventListener('sync', (event) => {
     }
 });
 
-//after reload check if there is still something to sync
-DB.favoriteRequests.count(count => {
-    if (count > 0) {
-        return syncFavorites();
-    }
-});
-
-DB.reviewRequests.count(count => {
-    if (count > 0) {
-        return syncReviews();
-    }
-});
