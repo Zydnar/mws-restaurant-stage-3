@@ -27,6 +27,7 @@ DBHelper.createIndexedStores(DB, {
     //after reload check if there is still something to sync
     db.favoriteRequests.count(count => {
         if (count > 0) {
+            console.log('sync');
             return syncFavorites();
         }
     });
@@ -221,13 +222,10 @@ addEventListener('fetch', (event) => {
                                 } else if (splited[splited.length - 2] === 'restaurants') {
                                     //do not cache API
                                     return responseClone;
-                                } else {
+                                } else if(event.request.method !== 'PUT' && event.request.method !== 'DELETE') {
                                     caches
                                         .open(CACHE_NAME)
-                                        .then((cache) => {
-                                                cache.put(event.request, responseClone);
-                                            }
-                                        );
+                                        .then((cache) => cache.put(event.request, responseClone));
                                     caches.match(event.request).then((r) => {
                                         if (r) return r;
                                     });

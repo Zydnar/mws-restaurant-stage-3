@@ -91,6 +91,13 @@ class Review {
      * @return {void}
      */
     fetchRestaurantFromURL = (callback) => {
+        const DB = DBHelper.createIndexedDB(DBHelper.DATABASE_NAME);
+        this.setState({indexedDB: DB});
+        DBHelper.createIndexedStores(DB, {
+            restaurants: 'id++,name,neighborhood,cuisine_type',
+            reviews: 'id++,name,restaurant_id,createdAt,updatedAt,rating,comments',
+            reviewRequests: 'id++,reviewID',
+        });
         if (this.state.restaurant) {
             // restaurant already fetched!
             callback(null, this.state.restaurant);
@@ -102,13 +109,6 @@ class Review {
             const error = 'No restaurant id in URL';
             callback(error, null);
         } else {
-            const DB = DBHelper.createIndexedDB(DBHelper.DATABASE_NAME);
-            this.setState({indexedDB});
-            DBHelper.createIndexedStores(DB, {
-                restaurants: 'id++,name,neighborhood,cuisine_type',
-                reviews: 'id++,name,restaurant_id,createdAt,updatedAt,rating,comments',
-                reviewRequests: 'id++,reviewID',
-            });
             DBHelper.fetchRestaurantById(id, DB)
                 .subscribe((restaurant) => {
                     this.state.restaurant = restaurant;
