@@ -1,13 +1,17 @@
 import DBHelper from "./DBHelper";
 import {createResponsiveImg, getDataAttributes} from './Restaurant';
 import {Observable} from "rxjs/Observable";
+import 'rxjs/add/observable/from';
+import 'rxjs/add/observable/fromEvent';
+import 'rxjs/add/observable/of';
+import 'rxjs/add/operator/toArray';
 import {toast} from "./toast";
 
 class Review {
-    constructor(){
+    constructor() {
         //adding review
         const reviewForm = document.getElementById('review-form');
-        reviewForm.addEventListener('submit', (event)=> {
+        reviewForm.addEventListener('submit', (event) => {
             event.preventDefault();
             const review = document.getElementById('review');
             const rating = document.getElementById('rating');
@@ -26,33 +30,40 @@ class Review {
                 updatedAt: (new Date()),
                 restaurant_id: restaurantID,
             };
-            //add to idb
-            this.state.indexedDB.reviews.put(rev).catch(console.error);
             //show added review immediately
             const ul = document.getElementById('reviews-list');
             ul.appendChild(this.createReviewHTML(rev));
+            //add to idb
+            this.state.indexedDB.reviews.put(rev).then(revID=>{
+                //send to API
+                return DBHelper.addReviewByRestaurant(data, '../')
+                    .catch(
+                        // leave it to bg sync
+                        () => {
+                            return new Promise((resolve, reject) => {
+                                if (navigator.serviceWorker) {
+                                    const reg = window.reg;
 
-            //send to API
-            DBHelper.addReviewByRestaurant(data, '../')
-                .catch(
-                    // leave it to bg sync
-                    () => {
-                        if (navigator.serviceWorker) {
-                            const reg = window.reg;
-
-                            if (reg.sync && reg.sync.getTags) {
-                                this.state.indexedDB.reviewRequests
-                                    .put({reviewID: restaurantID})
-                                    .then(reg.sync.register('syncReview'));
-                            }
+                                    if (reg.sync && reg.sync.getTags) {
+                                        resolve(
+                                            this.state.indexedDB.reviewRequests
+                                                .put({reviewID: revID})
+                                                .then(reg.sync.register('syncReview')));
+                                    }
+                                } else {
+                                    reject();
+                                }
+                            });
                         }
-                    }
-                 )
-                //retry when online
-                //.retryWhen(()=>this.ONLINE$)
-                .subscribe();
+                    )
+                    //retry when online
+                    //.retryWhen(()=>this.ONLINE$)
+                    .subscribe();
+            }).catch(console.error);
+
         });
     }
+
     /**
      * @type {{restaurant: null|Object, map: null|google.maps.Map, indexedDB: null|Dexie}}
      */
@@ -74,7 +85,7 @@ class Review {
      *
      * @type {Observable<Event>}
      */
-    OFFLINE$ = Observable.fromEvent(window, 'offline').subscribe(()=>{
+    OFFLINE$ = Observable.fromEvent(window, 'offline').subscribe(() => {
         toast('It looks, you\'re offline. All requests will be send after connection reestablishing.', 'info');
     });
 
@@ -181,7 +192,7 @@ class Review {
         element.addEventListener('click', (event) => {
             event.preventDefault();
             DBHelper.removeReviewByID(reviewID, '../../')
-                .retryWhen(()=>this.ONLINE$)
+                .retryWhen(() => this.ONLINE$)
                 .subscribe();
         });
     }
@@ -206,8 +217,8 @@ class Review {
         const ul = document.getElementById('reviews-list');
         const DB = this.state.indexedDB;
         reviews
-            .catch(()=>DBHelper.getIndexedReviews(DB))
-            .mergeMap(x => Observable.from(x))
+            .catch(() => DBHelper.getIndexedReviews(DB).toArray())
+            .mergeMap(x =>  Observable.from(x))
             .subscribe(review => {
                     ul.appendChild(this.createReviewHTML(review));
                     DB.reviews.put(review)
@@ -265,7 +276,7 @@ class Review {
      * @param {String=} name
      * @param url {String=}
      */
-    getParameterByName = (name='id', url = window.location.href) => {
+    getParameterByName = (name = 'id', url = window.location.href) => {
         if (!url) url = window.location.href;
         const parsedName = name.replace(/[\[\]]/g, "\\$&");
         const regex = new RegExp("[?&]" + parsedName + "(=([^&#]*)|&|#|$)"),

@@ -23,20 +23,19 @@ DBHelper.createIndexedStores(DB, {
     reviews: 'id++,name,restaurant_id,createdAt,updatedAt,rating,comments',
     favoriteRequests: 'id++,restaurantID',
     reviewRequests: 'id++,reviewID',
-}).then((db)=>{
-    //after reload check if there is still something to sync
-    db.favoriteRequests.count(count => {
-        if (count > 0) {
-            console.log('sync');
-            return syncFavorites();
-        }
-    });
+}).then((db) => {
+        //after reload check if there is still something to sync
+        db.favoriteRequests.count(count => {
+            if (count > 0) {
+                return syncFavorites();
+            }
+        });
 
-    db.reviewRequests.count(count => {
-        if (count > 0) {
-            return syncReviews();
-        }
-    });
+        db.reviewRequests.count(count => {
+            if (count > 0) {
+                return syncReviews();
+            }
+        });
     }
 );
 
@@ -103,18 +102,27 @@ const syncFavorites = () => new Promise((resolve, reject) => {
 const syncReviews = () => new Promise((resolve, reject) => {
     DBHelper
         .getIndexedReviewRequests(DB)
-        .mergeMap(rev => Observable.fromPromise(
-            DB.reviews
-                .where('restaurant_id')
-                .equals(rev.reviewID)
-                .first
-            )
+        .mergeMap(rev => {
+                return Observable.fromPromise(
+                    new Promise((resolve, reject) => {
+                        DB.reviews
+                            .get(Number(rev.reviewID))
+                            .then(resolve)
+                            .catch(reject)
+                    })
+                )
+            }
         )
-        .subscribe(restaurant => {
+        .subscribe(review => {
+                const form_data = new FormData();
 
+                for ( const key in review ) {
+                    form_data.append(key, review[key]);
+                }
                 Observable.fromPromise(
-                    fetch(`./restaurants/${restaurant.id}/?is_favorite=${restaurant.is_favorite}`, {
-                        method: 'PUT',
+                    fetch(`./reviews/`, {
+                        method: 'POST',
+                        body: form_data,
                     })
                 )
                     .retryWhen(() => ONLINE$.filter(online => online))
@@ -124,7 +132,7 @@ const syncReviews = () => new Promise((resolve, reject) => {
                         () => {
                             DB.reviewRequests
                                 .where('id')
-                                .equals(restaurant.id)
+                                .equals(review.id)
                                 .delete();
                         }
                     )
@@ -170,13 +178,14 @@ addEventListener('install', (event) => {
                     (() => {
                         return Promise.all(
                             [
-                                'https://maps.googleapis.com/maps-api-v3/api/js/33/4/intl/pl_ALL/common.js',
-                                'https://maps.googleapis.com/maps-api-v3/api/js/33/4/intl/pl_ALL/util.js',
-                                'https://maps.googleapis.com/maps-api-v3/api/js/33/4/intl/pl_ALL/map.js',
-                                'https://maps.googleapis.com/maps-api-v3/api/js/33/4/intl/pl_ALL/marker.js',
-                                'https://maps.googleapis.com/maps-api-v3/api/js/33/4/intl/pl_ALL/stats.js',
-                                'https://maps.googleapis.com/maps-api-v3/api/js/33/4/intl/pl_ALL/onion.js',
+                                'https://maps.googleapis.com/maps-api-v3/api/js/33/5/intl/pl_ALL/common.js',
+                                'https://maps.googleapis.com/maps-api-v3/api/js/33/5/intl/pl_ALL/util.js',
+                                'https://maps.googleapis.com/maps-api-v3/api/js/33/5/intl/pl_ALL/map.js',
+                                'https://maps.googleapis.com/maps-api-v3/api/js/33/5/intl/pl_ALL/marker.js',
+                                'https://maps.googleapis.com/maps-api-v3/api/js/33/5/intl/pl_ALL/stats.js',
+                                'https://maps.googleapis.com/maps-api-v3/api/js/33/5/intl/pl_ALL/onion.js',
                                 'https://maps.gstatic.com/mapfiles/api-3/images/spotlight-poi2.png',
+                                'https://maps.gstatic.com/mapfiles/openhand_8_8.cur',
                                 'https://maps.gstatic.com/mapfiles/transparent.png',
                                 'https://maps.googleapis.com/maps/api/js/ViewportInfoService.GetViewportInfo?1m6&1m2&1d40.55965355640603&2d-74.93700426125827&2m2&1d40.88229899141979&2d-73.04276332020981&2u12&4spl-PL&5e0&6sm%40426000000&7b0&8e0&callback=_xdc_._yz6io7&token=10959',
                                 'https://maps.googleapis.com/maps/api/js/AuthenticationService.Authenticate?1shttp%3A%2F%2Flocalhost%3A1337%2F&4sAIzaSyCZyUeaJZv0dXSBsJqALEkJmS5nKRZJDuY&callback=_xdc_._n5k7dh&token=19812'
@@ -219,10 +228,10 @@ addEventListener('fetch', (event) => {
                                     return caches.match('/img/placeholder.jpg').then((r) => {
                                         if (r) return r;
                                     });
-                                } else if (splited[splited.length - 2] === 'restaurants') {
+                                } else if (splited[splited.length - 2] === 'restaurants' || splited[splited.length - 2] === 'reviews') {
                                     //do not cache API
                                     return responseClone;
-                                } else if(event.request.method !== 'PUT' && event.request.method !== 'DELETE') {
+                                } else if (event.request.method !== 'PUT' && event.request.method !== 'DELETE') {
                                     caches
                                         .open(CACHE_NAME)
                                         .then((cache) => cache.put(event.request, responseClone));
