@@ -191,7 +191,9 @@ class Restaurant {
         const DB = DBHelper.createIndexedDB(DBHelper.DATABASE_NAME);
         DBHelper.createIndexedStores(DB, {
             restaurants: 'id++,name,neighborhood,cuisine_type',
+            reviews: 'id++,name,restaurant_id,createdAt,updatedAt,rating,comments',
             favoriteRequests: 'id++,restaurantID',
+            reviewRequests: 'id++,reviewID',
         });
         this.resetRestaurants();
         this.setState({indexedDB: DB});
