@@ -4,7 +4,7 @@ import {Subject} from 'rxjs/Subject';
 import 'rxjs/add/observable/fromPromise';
 import 'rxjs/add/operator/filter';
 import "regenerator-runtime/runtime";
-import "serviceworker-cache-polyfill";
+//import "serviceworker-cache-polyfill";
 
 const CACHE_NAME = "v1";
 const ONLINE$ = new Subject();

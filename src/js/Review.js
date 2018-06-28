@@ -60,7 +60,8 @@ class Review {
                     //.retryWhen(()=>this.ONLINE$)
                     .subscribe();
             }).catch(console.error);
-
+            // form can be reset now
+            reviewForm.reset();
         });
     }
 
