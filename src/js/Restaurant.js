@@ -248,8 +248,16 @@ class Restaurant {
                             if (reg.sync && reg.sync.getTags) {
                                 resolve(
                                     this.state.indexedDB.favoriteRequests
-                                        .put({restaurantID: restaurantID})
-                                        .then(reg.sync.register('syncFavorite'))
+                                        .where('restaurantID')
+                                        .equals(restaurantID)
+                                        .count(count=>{
+                                            if(count===0){
+                                                this.state.indexedDB.favoriteRequests
+                                                    .put({restaurantID: restaurantID})
+                                                    .then(reg.sync.register('syncFavorite'))
+                                            }
+                                        })
+
                                 );
                             }
                         } else {

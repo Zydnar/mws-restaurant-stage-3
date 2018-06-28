@@ -254,8 +254,7 @@ class Review {
         container.innerHTML = `<li data-review_id="${review.id}"><p>${review.name}</p>
 <p>${date}</p>
 <p class="review-rating">Rating: ${review.rating}</p>
-<p>${review.comments}</p>
-<button class="remove-review" title="Remove review">X</button><button class="edit-review">edit</button></li>`
+<p>${review.comments}</p></li>`
             .replace(/>\s+</, '><');
 
         return container.firstChild;
