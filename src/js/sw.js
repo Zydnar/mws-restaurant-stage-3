@@ -187,8 +187,8 @@ addEventListener('install', (event) => {
                                 'https://maps.gstatic.com/mapfiles/api-3/images/spotlight-poi2.png',
                                 'https://maps.gstatic.com/mapfiles/openhand_8_8.cur',
                                 'https://maps.gstatic.com/mapfiles/transparent.png',
-                                'https://maps.googleapis.com/maps/api/js/ViewportInfoService.GetViewportInfo?1m6&1m2&1d40.55965355640603&2d-74.93700426125827&2m2&1d40.88229899141979&2d-73.04276332020981&2u12&4spl-PL&5e0&6sm%40426000000&7b0&8e0&callback=_xdc_._yz6io7&token=10959',
-                                'https://maps.googleapis.com/maps/api/js/AuthenticationService.Authenticate?1shttp%3A%2F%2Flocalhost%3A1337%2F&4sAIzaSyCZyUeaJZv0dXSBsJqALEkJmS5nKRZJDuY&callback=_xdc_._n5k7dh&token=19812'
+                                'https://maps.googleapis.com/maps/api/js/ViewportInfoService.GetViewportInfo?1m6&1m2&1d40.55965355640603&2d-74.93700426125827&2m2&1d40.88229899141979&2d-73.04276332020981&2u12&4spl-PL&5e0&6sm%40426000000&7b0&8e0&callback=_xdc_._yz6io7&key=AIzaSyCZyUeaJZv0dXSBsJqALEkJmS5nKRZJDuY&token=37144',
+                                'https://maps.googleapis.com/maps/api/js/AuthenticationService.Authenticate?1shttp%3A%2F%2Flocalhost%3A1337%2F&4sAIzaSyCZyUeaJZv0dXSBsJqALEkJmS5nKRZJDuY&callback=_xdc_._n5k7dh&key=AIzaSyCZyUeaJZv0dXSBsJqALEkJmS5nKRZJDuY&token=107918'
                             ].map(url => fetch(url, initRequest)
                                 .then(r => cache.put((new Request(url, initRequest)), r))
                             )

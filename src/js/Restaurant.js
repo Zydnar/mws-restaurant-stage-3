@@ -20,9 +20,11 @@ class Restaurant {
             this.removeFavoriteListeners();
             ul.innerHTML = '';
             this.state.thumbnails.map((obj) => {
-                obj.HTML[0].innerHTML = obj.HTML[1] + obj.HTML[0].innerHTML;
-                this.fillRestaurantsHTML(obj.HTML[0]);
-                //not pure, but easier
+                // so called multiple-clicking-user-guard - high probability of plagiarism
+                const HTMLClone = obj.HTML[0].cloneNode(true);
+                HTMLClone.innerHTML = obj.HTML[1] + obj.HTML[0].innerHTML;
+                this.fillRestaurantsHTML(HTMLClone);
+                // not pure, but easier
                 obj.visible = true;
             });
             this.setFavoriteListeners();

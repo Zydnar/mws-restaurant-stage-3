@@ -3,7 +3,6 @@ import {createResponsiveImg, getDataAttributes} from './Restaurant';
 import {Observable} from "rxjs/Observable";
 import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/fromEvent';
-import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/toArray';
 import {toast} from "./toast";
 
@@ -34,7 +33,7 @@ class Review {
             const ul = document.getElementById('reviews-list');
             ul.appendChild(this.createReviewHTML(rev));
             //add to idb
-            this.state.indexedDB.reviews.put(rev).then(revID=>{
+            this.state.indexedDB.reviews.put(rev).then(revID => {
                 //send to API
                 return DBHelper.addReviewByRestaurant(data, '../')
                     .catch(
@@ -158,8 +157,23 @@ class Review {
         if (restaurant.operating_hours) {
             this.fillRestaurantHoursHTML();
         }
-        // fill reviews
-        this.fillReviewsHTML(DBHelper.fetchReviewsByID(this.state.restaurant.id, '../../'));
+        const DB = this.state.indexedDB;
+        DB.reviews
+            .count(count => {
+                // fill reviews
+                //todo can be done earlier and parallel using Observable.if instead of repeating code
+                if (count === 0) {
+                    this.fillReviewsHTML(
+                        // if indedDB table is not yet populated (assuming API has at least one record)
+                        DBHelper.fetchReviewsByID(this.state.restaurant.id, '../../')
+                    );
+                } else {
+                    // otherwise always get indexed values - so this means offline-first
+                    this.fillReviewsHTML(
+                        DBHelper.getIndexedReviews(DB).toArray()
+                    );
+                }
+            });
     };
 
     /**
@@ -220,7 +234,7 @@ class Review {
         const DB = this.state.indexedDB;
         reviews
             .catch(() => DBHelper.getIndexedReviews(DB).toArray())
-            .mergeMap(x =>  Observable.from(x))
+            .mergeMap(x => Observable.from(x))
             .subscribe(review => {
                     ul.appendChild(this.createReviewHTML(review));
                     DB.reviews.put(review)
